@@ -6,6 +6,8 @@ Minimal native macOS 15 (Sequoia) SwiftUI frontend for `yt-dlp`.
 
 ![Screenshot of KiruCut](screenshot.png)
 
+Note: this project was vibe coded with AI using Codex.
+
 ## Architecture
 
 - `ContentView`: UI
@@ -14,15 +16,21 @@ Minimal native macOS 15 (Sequoia) SwiftUI frontend for `yt-dlp`.
 
 ## Prerequisites
 
-- Xcode 16 (Swift 6 toolchain)
-- macOS 15+
+- macOS 14+ (Sonoma or newer, untested with Tahoe due to Tahoe being terrible)
+- Intel (`x86_64`) or Apple Silicon (`arm64`) Mac
 - `yt-dlp` installed in `PATH` (or choose binary in app)
-- Apple Silicon (arm64) Mac
+  - Auto-detected locations include Homebrew (`/opt/homebrew/bin`, `/usr/local/bin`) and MacPorts (`/opt/local/bin`)
 
 Example install:
 
 ```bash
 brew install yt-dlp
+```
+
+MacPorts:
+
+```bash
+sudo port install yt-dlp
 ```
 
 ## Build (Release)

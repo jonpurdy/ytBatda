@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "ytBatda",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v14)
     ],
     products: [
         .executable(name: "ytBatdaApp", targets: ["ytBatdaApp"])
@@ -12,7 +12,12 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "ytBatdaApp",
-            path: "Sources/YTDLMacApp"
+            path: "Sources/YTBatdaApp"
+        ),
+        .testTarget(
+            name: "YTBatdaAppTests",
+            dependencies: ["ytBatdaApp"],
+            path: "Tests/YTBatdaAppTests"
         )
     ]
 )
