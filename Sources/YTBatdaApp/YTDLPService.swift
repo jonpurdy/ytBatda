@@ -23,6 +23,12 @@ protocol DownloadServicing {
 
 struct YTDLPService: DownloadServicing, Sendable {
     private static let activeDownload = ActiveDownloadManager()
+    static let fallbackExecutableSearchDirs = [
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        "/opt/local/bin",
+        "/usr/bin"
+    ]
 
     func cancelActiveDownload() {
         Self.activeDownload.cancelActiveDownload()
@@ -233,22 +239,13 @@ struct YTDLPService: DownloadServicing, Sendable {
             return explicit
         }
 
-        var searchDirs = Set<String>()
-
-        let path = ProcessInfo.processInfo.environment["PATH"] ?? ""
-        for dir in path.split(separator: ":") {
-            searchDirs.insert(String(dir))
-        }
-
-        searchDirs.insert("/opt/homebrew/bin")
-        searchDirs.insert("/usr/local/bin")
-        searchDirs.insert("/usr/bin")
-
-        for dir in searchDirs.sorted() {
-            let candidate = URL(fileURLWithPath: dir).appendingPathComponent("yt-dlp")
-            if FileManager.default.isExecutableFile(atPath: candidate.path) {
-                return candidate
-            }
+        let searchDirs = Self.executableSearchDirs(path: ProcessInfo.processInfo.environment["PATH"] ?? "")
+        if let path = Self.firstExecutablePath(
+            named: "yt-dlp",
+            searchDirs: searchDirs,
+            isExecutable: { FileManager.default.isExecutableFile(atPath: $0) }
+        ) {
+            return URL(fileURLWithPath: path)
         }
 
         throw DownloadError.missingBinary
@@ -406,14 +403,47 @@ struct YTDLPService: DownloadServicing, Sendable {
 
     private func mergedEnvironment() -> [String: String] {
         var env = ProcessInfo.processInfo.environment
-        let appPath = env["PATH"] ?? ""
-        let preferred = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-        if appPath.isEmpty {
-            env["PATH"] = preferred
-        } else {
-            env["PATH"] = preferred + ":" + appPath
-        }
+        env["PATH"] = Self.mergedPath(appPath: env["PATH"] ?? "")
         return env
+    }
+}
+
+extension YTDLPService {
+    static func executableSearchDirs(path: String) -> [String] {
+        var ordered: [String] = []
+        var seen = Set<String>()
+
+        for dir in path.split(separator: ":").map(String.init) + fallbackExecutableSearchDirs {
+            guard !dir.isEmpty else { continue }
+            if seen.insert(dir).inserted {
+                ordered.append(dir)
+            }
+        }
+
+        return ordered
+    }
+
+    static func firstExecutablePath(
+        named executableName: String,
+        searchDirs: [String],
+        isExecutable: (String) -> Bool
+    ) -> String? {
+        for dir in searchDirs {
+            let candidate = URL(fileURLWithPath: dir).appendingPathComponent(executableName).path
+            if isExecutable(candidate) {
+                return candidate
+            }
+        }
+        return nil
+    }
+
+    static func mergedPath(appPath: String) -> String {
+        let preferred = fallbackExecutableSearchDirs + ["/bin", "/usr/sbin", "/sbin"]
+        let preferredPath = preferred.joined(separator: ":")
+        if appPath.isEmpty {
+            return preferredPath
+        }
+        return preferredPath + ":" + appPath
     }
 }
 

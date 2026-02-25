@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct ytBatdaApp: App {
+struct ytBatdaMainApp: App {
     @StateObject private var viewModel: DownloadViewModel
 
     init() {
