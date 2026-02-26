@@ -2,7 +2,7 @@
 
 batda (받다) == to receive (Korean)
 
-Minimal native macOS 15 (Sequoia) SwiftUI frontend for `yt-dlp`.
+Minimal native macOS 14+ (Sonoma+) SwiftUI frontend for `yt-dlp`.
 
 ![Screenshot of KiruCut](screenshot.png)
 
